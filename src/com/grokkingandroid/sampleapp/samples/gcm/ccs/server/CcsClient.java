@@ -57,7 +57,7 @@ import javax.net.ssl.SSLSocketFactory;
  */
 public class CcsClient {
 
-    Logger logger = Logger.getLogger("SmackCcsClient");
+    public static final Logger logger = Logger.getLogger(CcsClient.class.getName());
 
     public static final String GCM_SERVER = "gcm.googleapis.com";
     public static final int GCM_PORT = 5235;
@@ -192,15 +192,16 @@ public class CcsClient {
     /**
      * Sends a message to multiple recipients. Kind of like the old
      * HTTP message with the list of regIds in the "registration_ids" field.
-     * 
-     * @param jsonRequest 
      */
     public void sendBroadcast(Map<String, String> payload, String collapseKey,
             long timeToLive, Boolean delayWhileIdle, List<String> recipients) {
+        Map map = createAttributeMap(null, null, payload, collapseKey,
+                    timeToLive, delayWhileIdle);
         for (String toRegId: recipients) {
             String messageId = getRandomMessageId();
-            String jsonRequest = createJsonMessage(toRegId, messageId, payload, collapseKey,
-                    timeToLive, delayWhileIdle);
+            map.put("message_id", messageId);
+            map.put("to", toRegId);
+            String jsonRequest = createJsonMessage(map);
             send(jsonRequest);
         }
     }
@@ -277,8 +278,20 @@ public class CcsClient {
      */
     public static String createJsonMessage(String to, String messageId, Map<String, String> payload,
             String collapseKey, Long timeToLive, Boolean delayWhileIdle) {
+        return createJsonMessage(createAttributeMap(to, messageId, payload,
+                collapseKey, timeToLive, delayWhileIdle));
+    }
+    
+    public static String createJsonMessage(Map map) {
+        return JSONValue.toJSONString(map);
+    }
+
+    public static Map createAttributeMap(String to, String messageId, Map<String, String> payload,
+            String collapseKey, Long timeToLive, Boolean delayWhileIdle) {
         Map<String, Object> message = new HashMap<String, Object>();
-        message.put("to", to);
+        if (to != null) {
+            message.put("to", to);
+        }
         if (collapseKey != null) {
             message.put("collapse_key", collapseKey);
         }
@@ -288,9 +301,11 @@ public class CcsClient {
         if (delayWhileIdle != null && delayWhileIdle) {
             message.put("delay_while_idle", true);
         }
-        message.put("message_id", messageId);
+        if (messageId != null) {
+            message.put("message_id", messageId);
+        }
         message.put("data", payload);
-        return JSONValue.toJSONString(message);
+        return message;
     }
 
     /**
@@ -389,38 +404,10 @@ public class CcsClient {
                 String json = gcmPacket.getJson();
                 try {
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> jsonObject
+                    Map<String, Object> jsonMap
                             = (Map<String, Object>) JSONValue.parseWithException(json);
-
-                    // present for "ack"/"nack", null otherwise
-                    Object messageType = jsonObject.get("message_type");
-
-                    if (messageType == null) {
-                        CcsMessage msg = getMessage(jsonObject);
-                        // Normal upstream data message
-                        try {
-                            handleIncomingDataMessage(msg);
-                            // Send ACK to CCS
-                            String ack = createJsonAck(msg.getFrom(), msg.getMessageId());
-                            send(ack);
-                        }
-                        catch (Exception e) {
-                            // Send NACK to CCS
-                            String nack = createJsonNack(msg.getFrom(), msg.getMessageId());
-                            send(nack);
-                    }
-
-                        
-                    } else if ("ack".equals(messageType.toString())) {
-                        // Process Ack
-                        handleAckReceipt(jsonObject);
-                    } else if ("nack".equals(messageType.toString())) {
-                        // Process Nack
-                        handleNackReceipt(jsonObject);
-                    } else {
-                        logger.log(Level.WARNING, "Unrecognized message type (%s)",
-                                messageType.toString());
-                    }
+                    
+                    handleMessage(jsonMap);
                 } catch (ParseException e) {
                     logger.log(Level.SEVERE, "Error parsing JSON " + json, e);
                 } catch (Exception e) {
@@ -438,6 +425,37 @@ public class CcsClient {
         }, new PacketTypeFilter(Message.class));
 
         connection.login(mProjectId + "@gcm.googleapis.com", mApiKey);
+        logger.log(Level.INFO, "logged in: " + mProjectId);
+    }
+
+    private void handleMessage(Map<String, Object> jsonMap) {
+        // present for "ack"/"nack", null otherwise
+        Object messageType = jsonMap.get("message_type");
+
+        if (messageType == null) {
+            CcsMessage msg = getMessage(jsonMap);
+            // Normal upstream data message
+            try {
+                handleIncomingDataMessage(msg);
+                // Send ACK to CCS
+                String ack = createJsonAck(msg.getFrom(), msg.getMessageId());
+                send(ack);
+            }
+            catch (Exception e) {
+                // Send NACK to CCS
+                String nack = createJsonNack(msg.getFrom(), msg.getMessageId());
+                send(nack);
+            }
+        } else if ("ack".equals(messageType.toString())) {
+            // Process Ack
+            handleAckReceipt(jsonMap);
+        } else if ("nack".equals(messageType.toString())) {
+            // Process Nack
+            handleNackReceipt(jsonMap);
+        } else {
+            logger.log(Level.WARNING, "Unrecognized message type (%s)",
+                    messageType.toString());
+        }
     }
 
     public static void main(String[] args) {

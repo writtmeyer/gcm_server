@@ -25,13 +25,12 @@ public class EchoProcessor implements PayloadProcessor{
         PseudoDao dao = PseudoDao.getInstance();
         CcsClient client = CcsClient.getInstance();
         String msgId = dao.getUniqueMessageId();
-        String collapseKey = "echo:CollapseKey";
         String jsonRequest = 
                 CcsClient.createJsonMessage(
                         msg.getFrom(), 
                         msgId, 
                         msg.getPayload(), 
-                        collapseKey, 
+                        null, 
                         null, // TTL (null -> default-TTL) 
                         false);
         client.send(jsonRequest);

@@ -335,11 +335,11 @@ public class CcsClient {
      * @param to RegistrationId of the device who sent the upstream message.
      * @param messageId messageId of the upstream message to be acknowledged to
      * CCS.
-     * @return JSON encoded ack.
+     * @return JSON encoded nack.
      */
     public static String createJsonNack(String to, String messageId) {
         Map<String, Object> message = new HashMap<String, Object>();
-        message.put("message_type", "ack");
+        message.put("message_type", "nack");
         message.put("to", to);
         message.put("message_id", messageId);
         return JSONValue.toJSONString(message);

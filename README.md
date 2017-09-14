@@ -1,4 +1,4 @@
-#Readme
+# Readme
 This is a sample project to showcase Google Cloud Messaging using upstream messaging. This
 project is a very simply standalone server. Though that's not part of this sample 
 I was able to utilize this project from within a Java webapp.
@@ -8,13 +8,13 @@ meeting in Utrecht on January, 16th 2014. If you ever have the possibility to
 visit a meeting of the Dutch AUG, I stringly recommend to do so. It has been a gorgeous evening!
 
 
-##Libraries used
+## Libraries used
 This project makes use of [Smack](http://www.igniterealtime.org/projects/smack/) and 
 [Json-simple](http://code.google.com/p/json-simple/). The code is based on a sample class provided
 by Google on the [XMPP documentation page](http://developer.android.com/google/gcm/ccs.html).
 
 
-##Most important classes
+## Most important classes
 All classes are within the `com.grokkingandroid.sampleapp.samples.gcm.ccs.server` package.
 
 `CcsClient` contains a main method which takes three arguments:
@@ -40,7 +40,7 @@ The implementations of `PayloadProcessor` (`EchoProcessor`, `MessageProcessor` a
 finally handle the incoming messages and perform the appropriate actions.
 
 
-##Credentials
+## Credentials
 **To run this project you need a GCM-project number and an API key.** You can read more about it on the 
 [Getting Started page of Google's documentation](http://developer.android.com/google/gcm/gs.html).
 
@@ -52,11 +52,11 @@ See for example the note at the top of the [http://developer.android.com/google/
 You can find a current link there as well.
 
 
-##Relevant Blogposts on [Grokking Android](http://www.grokkingandroid.com/)
+## Relevant Blogposts on [Grokking Android](http://www.grokkingandroid.com/)
 Right now I haven't finished the blog post about GCM. It's in the making and should be up pretty soon.
 
 
-##Developed by
+## Developed by
 
 *Wolfram Rittmeyer* - You can contact me via:
 
@@ -67,7 +67,7 @@ Right now I haven't finished the blog post about GCM. It's in the making and sho
 * [Twitter](https://twitter.com/RittmeyerW)
 
 
-##Thanks
+## Thanks
 A big thanks to the organizers of the meetup in Utrecht. It was a great evening with good presentations 
 and interesting conversations in the breaks!
 
@@ -81,7 +81,7 @@ in Utrecht.
 And finally: This readme was created using [dillinger.io](http://dillinger.io). Thanks for this service.
 
 
-##License
+## License
     Copyright 2014 Wolfram Rittmeyer
 
     Licensed under the Apache License, Version 2.0 (the "License");
